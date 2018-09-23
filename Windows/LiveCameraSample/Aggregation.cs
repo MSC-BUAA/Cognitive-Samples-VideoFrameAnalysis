@@ -36,6 +36,7 @@ using Microsoft.ProjectOxford.Face.Contract;
 using Microsoft.ProjectOxford.Common.Contract;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace LiveCameraSample
 {
@@ -52,7 +53,7 @@ namespace LiveCameraSample
             return string.Format("{0}: {1:N1}", bestEmotion.Item1, bestEmotion.Item2);
         }
 
-        public static string SummarizeFaceAttributes(FaceAttributes attr)
+        public static string SummarizeFaceAttributes(FaceAttributes attr, string personName)
         {
             List<string> attrs = new List<string>();
             if (attr.Gender != null) attrs.Add(attr.Gender);
@@ -63,6 +64,7 @@ namespace LiveCameraSample
                 bool facing = Math.Abs(attr.HeadPose.Yaw) < 25;
                 attrs.Add(facing ? "facing camera" : "not facing camera");
             }
+            attrs.Add(personName);
             return string.Join(", ", attrs);
         }
     }

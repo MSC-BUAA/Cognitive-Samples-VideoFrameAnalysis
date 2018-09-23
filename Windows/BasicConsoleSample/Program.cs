@@ -77,6 +77,9 @@ namespace BasicConsoleSample
             // See also TriggerAnalysisOnPredicate
             grabber.TriggerAnalysisOnInterval(TimeSpan.FromMilliseconds(3000));
 
+
+
+
             // Start running in the background.
             grabber.StartProcessingCameraAsync().Wait();
 

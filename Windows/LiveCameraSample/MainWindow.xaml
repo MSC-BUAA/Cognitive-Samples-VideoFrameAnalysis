@@ -5,29 +5,34 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LiveCameraSample"
         mc:Ignorable="d"
-        Title="LiveCameraSample" Height="550" Width="725">
-    <Grid>
+        Title="LiveCameraSample" Height="473" Width="725">
+    <Grid Margin="0,0,0,-2.5">
         <Grid.RowDefinitions>
             <RowDefinition Height="35" />
             <RowDefinition Height="*" />
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0" Name="ButtonBar">
-            <ComboBox x:Name="CameraList" Width="100" Margin="5,5,0,5" Loaded="CameraList_Loaded" />
-            <Button Content="Start Camera" Padding="5,0" Margin="5,5,0,5" Click="StartButton_Click" />
+
+            <Button Content="Start Camera" Padding="5,0" Margin="5,5,0,5" Click="StartButton_Click" Name="IdentifyButton"/>
             <Button Content="Stop Camera" Padding="5,0" Margin="5,5,0,5" Click="StopButton_Click" />
-            <TextBlock VerticalAlignment="Center" Margin="15,5,0,5" Text="Mode:" />
+            <Button Content="Create Output Window" Padding="5,0" Margin="5,5,0,5"  Click="Button_Click_1"/>
+
             <ComboBox x:Name="ModeList" Width="100" Margin="5,5,0,5" Loaded="ModeList_Loaded" SelectionChanged="ModeList_SelectionChanged" />
+            <ComboBox x:Name="CameraList" Width="100" Margin="5,5,0,5" Loaded="CameraList_Loaded" />
+
+            <Button Content="QRCode" Padding="5,0" Margin="5,5,0,5"  Click="QRCode"/>
+            <TextBox x:Name="QRCodePath" Text="out.png" Padding="5,0" Margin="5,8,0,7" Width="98" HorizontalAlignment="Stretch" TextAlignment="Left" />
+
         </StackPanel>
-        <Button Content="Show/Hide Settings" Padding="5,0" Margin="5" Click="SettingsButton_Click" HorizontalAlignment="Right" />
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Image x:Name="LeftImage" Grid.Column="0" Margin="5" />
-            <Image x:Name="RightImage" Grid.Column="1" Margin="5" Panel.ZIndex="1" />
-            <StackPanel Visibility="{Binding Source={StaticResource Settings}, Path=Default.SettingsPanelVisibility, Mode=TwoWay}" Grid.Column="1" Panel.ZIndex="2" Name="SettingsPanel" Background="LightGray" VerticalAlignment="Top" Margin="5">
+
+            <StackPanel Grid.Column="1" Panel.ZIndex="2" Name="SettingsPanel" Background="LightGray" VerticalAlignment="Top" Margin="5">
                 <TextBlock Margin="5" Grid.Row="0" FontWeight="Bold" Text="Settings"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -48,15 +53,17 @@
                     <TextBlock Margin="5" Grid.Row="0" Grid.Column="0" Text="Face API Key:" />
                     <TextBox   Margin="5" Grid.Row="0" Grid.Column="1" Text="{Binding Source={StaticResource Settings}, Path=Default.FaceAPIKey, Mode=TwoWay}" />
                     <TextBlock Margin="5" Grid.Row="1" Grid.Column="0" Text="Face API Host:" />
-                    <TextBox   Margin="5" Grid.Row="1" Grid.Column="1" Text="{Binding Source={StaticResource Settings}, Path=Default.FaceAPIHost, Mode=TwoWay}" />
+                    <TextBox   Margin="5" Grid.Row="1" Grid.Column="1" Text="{Binding Source={StaticResource Settings}, Path=Default.FaceAPIHost, Mode=TwoWay}" TextChanged="TextBox_TextChanged" />
                     <TextBlock Margin="5" Grid.Row="2" Grid.Column="0" Text="Vision API Key:" />
                     <TextBox   Margin="5" Grid.Row="2" Grid.Column="1" Text="{Binding Source={StaticResource Settings}, Path=Default.VisionAPIKey, Mode=TwoWay}" />
                     <TextBlock Margin="5" Grid.Row="3" Grid.Column="0" Text="Vision API Host:" />
                     <TextBox   Margin="5" Grid.Row="3" Grid.Column="1" Text="{Binding Source={StaticResource Settings}, Path=Default.VisionAPIHost, Mode=TwoWay}" />
                     <TextBlock Margin="5" Grid.Row="4" Grid.ColumnSpan="2" TextWrapping="Wrap"><Run Text="Get API keys at "/><Hyperlink NavigateUri="http://www.microsoft.com/cognitive" RequestNavigate="Hyperlink_RequestNavigate"><Run Text="microsoft.com/cognitive"/></Hyperlink></TextBlock>
                     <TextBlock Margin="5" Grid.Row="5" Grid.Column="0" Text="API Call Interval:" />
-                    <TextBox   Margin="5" Grid.Row="5" Grid.Column="1" Text="{Binding Source={StaticResource Settings}, Path=Default.AnalysisInterval, Mode=TwoWay}" />
-                    <TextBlock Margin="5" Grid.Row="6" Grid.ColumnSpan="2" TextWrapping="Wrap"><Run FontWeight="Bold" Text="Caution"/><Run Text=": Each video frame submitted to an API will count towards your transaction limit."/></TextBlock>
+                    <TextBox   Margin="5" Grid.Row="5" Grid.Column="1" Text="{Binding Source={StaticResource Settings}, Path=Default.AnalysisInterval, Mode=TwoWay}"/>
+                    <!--<TextBlock Margin="5" Grid.Row="6" Grid.Column="0" Text="emmmm:" />-->
+                    <!--<TextBox   Margin="5" Grid.Row="6" Grid.Column="1" Text="{Binding Source={StaticResource Settings}, Path=Default.AnalysisInterval, Mode=TwoWay}" TextChanged="TextBox_TextChanged_1" />-->
+                    <TextBlock Margin="5" Grid.Row="7" Grid.ColumnSpan="2" TextWrapping="Wrap"><Run FontWeight="Bold" Text="Caution"/><Run Text=": Each video frame submitted to an API will count towards your transaction limit."/></TextBlock>
                 </Grid>
                 <TextBlock Margin="5,0,5,5">
                     <Run Text="Face API calls made = "/><Run Text="{Binding Source={StaticResource Settings}, Path=Default.FaceAPICallCount}"/><LineBreak />
@@ -65,6 +72,16 @@
                 <CheckBox Margin="5" IsChecked="{Binding Source={StaticResource Settings}, Path=Default.AutoStopEnabled}" ContentStringFormat="Automatically stop after {0}" Content="{Binding Source={StaticResource Settings}, Path=Default.AutoStopTime}" />
                 <Button Margin="5" Content="Save" Click="SaveSettingsButton_Click" />
             </StackPanel>
+            <Grid Margin="5,325,0,0" Grid.Column="1" Height="165" VerticalAlignment="Top" HorizontalAlignment="Left" Width="340">
+                <Button Content="Fullscreen" HorizontalAlignment="Left" Margin="0,1,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.393,-0.763" Click="FullScreen"/>
+                <Button Content="UnFullscreen" HorizontalAlignment="Left" Margin="80,1,0,0" VerticalAlignment="Top" Width="84" RenderTransformOrigin="0.393,-0.763" Click="UnFullScreen"/>
+                <Button Content="Upload" Padding="5,0" Margin="169,1,115,0" Click="FolderPicker_Click" Height="20" VerticalAlignment="Top" />
+
+                <Button Content="Open" HorizontalAlignment="Left" Margin="255,25,0,0" Width="75" Click="Button_Click" Height="20" VerticalAlignment="Top"/>
+                <TextBox HorizontalAlignment="Left" Height="20" Margin="42,25,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="208" Name="personPath"/>
+                <TextBlock HorizontalAlignment="Left" Margin="10,50,0,0" TextWrapping="Wrap" RenderTransformOrigin="-0.027,0.1" Width="320" Height="105" VerticalAlignment="Top"><Run Text="1. Set "/><Run FontWeight="Bold" Text="Path"/><Run Text="."/><Run Text=" "/><Run Text=" "/><Run Text="2. Upload"/><Run Text="  "/><LineBreak/><Run Text="    "/><Run FontWeight="Bold" Text="/"/><Run FontWeight="Bold" Text="P"/><Run FontWeight="Bold" Text="erson"/><Run FontWeight="Bold" Text="s"/><LineBreak/><Run Text="        /Alice"/><LineBreak/><Run Text="&#x9;alice_1.png"/><LineBreak/><Run Text="&#x9;..."/><Run Text="..."/><LineBreak/><Run Text="        /Bob"/><LineBreak/><Run Text="        ......."/></TextBlock>
+                <TextBlock HorizontalAlignment="Left" Margin="2,27,0,0" TextWrapping="Wrap" Text="Path:" VerticalAlignment="Top" Width="52"/>
+            </Grid>
         </Grid>
         <TextBlock Name="MessageArea" Margin="5" Grid.Row="2" VerticalAlignment="Center" />
     </Grid>

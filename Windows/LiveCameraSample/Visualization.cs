@@ -43,6 +43,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.ProjectOxford.Common.Contract;
 using FaceAPI = Microsoft.ProjectOxford.Face.Contract;
 using Microsoft.ProjectOxford.Vision.Contract;
+using System.Collections.ObjectModel;
 
 namespace LiveCameraSample
 {
@@ -88,7 +89,7 @@ namespace LiveCameraSample
                     // Create formatted text--in a particular font at a particular size
                     FormattedText ft = new FormattedText(tag.Name,
                         CultureInfo.CurrentCulture, FlowDirection.LeftToRight, s_typeface,
-                        42 * annotationScale, Brushes.Black);
+                        21 * annotationScale, Brushes.Black);
                     // Instead of calling DrawText (which can only draw the text in a solid colour), we
                     // convert to geometry and use DrawGeometry, which allows us to add an outline. 
                     var geom = ft.BuildGeometry(new System.Windows.Point(10 * annotationScale, y));
@@ -101,7 +102,7 @@ namespace LiveCameraSample
             return DrawOverlay(baseImage, drawAction);
         }
 
-        public static BitmapSource DrawFaces(BitmapSource baseImage, FaceAPI.Face[] faces, EmotionScores[] emotionScores, string[] celebName)
+        public static BitmapSource DrawFaces(BitmapSource baseImage, FaceAPI.Face[] faces, ObservableCollection<Microsoft.ProjectOxford.Face.Controls.Face> targetFaces, EmotionScores[] emotionScores, string[] celebName)
         {
             if (faces == null)
             {
@@ -122,7 +123,7 @@ namespace LiveCameraSample
 
                     if (face.FaceAttributes != null)
                     {
-                        text += Aggregation.SummarizeFaceAttributes(face.FaceAttributes);
+                        text += Aggregation.SummarizeFaceAttributes(face.FaceAttributes, targetFaces[i].PersonName);
                     }
 
                     if (emotionScores?[i] != null)

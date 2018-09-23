@@ -12,7 +12,7 @@
       <Value Profile="(Default)">Visible</Value>
     </Setting>
     <Setting Name="AnalysisInterval" Type="System.TimeSpan" Scope="User">
-      <Value Profile="(Default)">00:00:03</Value>
+      <Value Profile="(Default)">00:00:10</Value>
     </Setting>
     <Setting Name="FaceAPICallCount" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
