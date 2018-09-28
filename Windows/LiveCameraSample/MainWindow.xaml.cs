@@ -92,15 +92,22 @@ namespace LiveCameraSample
         }
 
         RealTimeOut outWin = new RealTimeOut();
+        static DataTable dataTable = new DataTable();
 
+        static List<PersonData> personData = new List<PersonData>();
 
         public MainWindow()
         {
             InitializeComponent();
 
             outWin.Show();
-
-            
+            dataTable.Show();
+            if (Properties.Settings.Default.GroupGuid != "00000000-0000-0000-0000-000000000000")
+                this.GroupId = Properties.Settings.Default.GroupGuid;
+            else {
+                Properties.Settings.Default.GroupGuid = Guid.NewGuid().ToString();
+                Properties.Settings.Default.Save();
+            }
 
             // Create grabber. 
             _grabber = new FrameGrabber<LiveCameraResult>();
@@ -194,6 +201,11 @@ namespace LiveCameraSample
 
             // Create local face detector. 
             _localFaceDetector.Load("Data/haarcascade_frontalface_alt2.xml");
+            FolderPicker();
+        }
+
+        public void PersonDataUpdate() {
+            dataTable.dataGrid.ItemsSource = personData;
         }
 
         private static string sampleGroupId = Guid.NewGuid().ToString();
@@ -369,6 +381,7 @@ namespace LiveCameraSample
                 if (res.Candidates.Length > 0 && Persons.Any(p => p.PersonId == res.Candidates[0].PersonId.ToString()))
                 {
                     face.PersonName = Persons.Where(p => p.PersonId == res.Candidates[0].PersonId.ToString()).First().PersonName;
+                    face.FaceId = res.Candidates[0].PersonId.ToString();
                 }
                 else
                 {
@@ -479,7 +492,7 @@ namespace LiveCameraSample
                     MatchAndReplaceFaceRectangles(result.Faces, clientFaces);
                 }
 
-                visImage = Visualization.DrawFaces(visImage, result.Faces, result.TargetFaces, result.EmotionScores, result.CelebrityNames);
+                visImage = Visualization.DrawFaces(visImage, result.Faces, result.TargetFaces, result.EmotionScores, result.CelebrityNames, personData, dataTable);
                 visImage = Visualization.DrawTags(visImage, result.Tags);
             }
 
@@ -688,7 +701,26 @@ namespace LiveCameraSample
 
         private int _maxConcurrentProcesses = 4;
 
+        private bool FindPersonByName(ClientContract.Person[] load_Persons, string personName, out Guid personID) {
+            foreach (var p in load_Persons) {
+                if (p.Name == personName) {
+                    personID = p.PersonId;
+                    return true;
+                }
+            }
+            personID = Guid.NewGuid();
+            return false;
+        }
+
+        ClientContract.Person[] load_Persons;
+
         private async void FolderPicker_Click(object sender, RoutedEventArgs e) {
+            FolderPicker();
+        }
+
+        private async void FolderPicker() {
+            if (Properties.Settings.Default.FacePath == "path here")
+                return;
             _faceClient = new FaceAPI.FaceServiceClient(Properties.Settings.Default.FaceAPIKey, Properties.Settings.Default.FaceAPIHost);
             bool groupExists = false;
 
@@ -711,16 +743,8 @@ namespace LiveCameraSample
                 }
             }
 
-            if (groupExists) {
-                var cleanGroup = System.Windows.MessageBox.Show(string.Format("Requires a clean up for group \"{0}\" before setting up a new person database. Click OK to proceed, group \"{0}\" will be cleared.", this.GroupId), "Warning", MessageBoxButton.OKCancel);
-                if (cleanGroup == MessageBoxResult.OK) {
-                    await faceServiceClient.DeleteLargePersonGroupAsync(this.GroupId);
-                    this.GroupId = Guid.NewGuid().ToString();
-                } else {
-                    return;
-                }
-            }
 
+            
             // Show folder picker
             //System.Windows.Forms.FolderBrowserDialog dlg = new System.Windows.Forms.FolderBrowserDialog();
             //var result = dlg.ShowDialog();
@@ -729,7 +753,7 @@ namespace LiveCameraSample
             // it's not corresponding to service side constraint
             const int SuggestionCount = 15;
 
-            if (personPath.Text != "") {
+            if (Properties.Settings.Default.FacePath != "path here") {
                 // User picked a root person database folder
                 // Clear person database
                 Persons.Clear();
@@ -739,14 +763,21 @@ namespace LiveCameraSample
 
                 // Call create large person group REST API
                 // Create large person group API call will failed if group with the same name already exists
-                Log("Request: Creating group \"{0}\"", this.GroupId);
-                try {
-                    await faceServiceClient.CreateLargePersonGroupAsync(this.GroupId, this.GroupId);
-                    Log("Response: Success. Group \"{0}\" created.", this.GroupId);
-                } catch (FaceAPIException ex) {
-                    Log("Response: {0}. {1}", ex.ErrorCode, ex.ErrorMessage);
-                    return;
+                if (groupExists) {
+                    Log("Request: Loading group \"{0}\"", this.GroupId);
+                    load_Persons = await faceServiceClient.ListPersonsInLargePersonGroupAsync(this.GroupId);
+                   
+                } else {
+                    Log("Request: Creating group \"{0}\"", this.GroupId);
+                    try {
+                        await faceServiceClient.CreateLargePersonGroupAsync(this.GroupId, this.GroupId);
+                        Log("Response: Success. Group \"{0}\" created.", this.GroupId);
+                    } catch (FaceAPIException ex) {
+                        Log("Response: {0}. {1}", ex.ErrorCode, ex.ErrorMessage);
+                        return;
+                    }
                 }
+                
 
                 int processCount = 0;
                 bool forceContinue = false;
@@ -755,7 +786,8 @@ namespace LiveCameraSample
 
                 // Enumerate top level directories, each directory contains one person's images
                 int invalidImageCount = 0;
-                foreach (var dir in System.IO.Directory.EnumerateDirectories(personPath.Text)) {
+                personData.Clear();
+                foreach (var dir in System.IO.Directory.EnumerateDirectories(Properties.Settings.Default.FacePath)) {
                     var tasks = new List<Task>();
                     var tag = System.IO.Path.GetFileName(dir);
                     Person p = new Person();
@@ -766,8 +798,21 @@ namespace LiveCameraSample
 
                     // Call create person REST API, the new create person id will be returned
                     Log("Request: Creating person \"{0}\"", p.PersonName);
-                    p.PersonId = (await faceServiceClient.CreatePersonInLargePersonGroupAsync(this.GroupId, p.PersonName)).PersonId.ToString();
+
+                    Guid personid = Guid.NewGuid();
+                    bool isFound = false;
+                    if (groupExists) {
+                        isFound = FindPersonByName(load_Persons, p.PersonName, out personid);
+                    }
+
+                    if (groupExists && isFound) {
+                        p.PersonId = (await faceServiceClient.GetPersonInLargePersonGroupAsync(this.GroupId, personid)).PersonId.ToString();
+                    } else {
+                        p.PersonId = (await faceServiceClient.CreatePersonInLargePersonGroupAsync(this.GroupId, p.PersonName)).PersonId.ToString();
+                    }
                     Log("Response: Success. Person \"{0}\" (PersonID:{1}) created. Please wait for training.", p.PersonName, p.PersonId);
+
+                    personData.Add(new PersonData(p.PersonId, p.PersonName));
 
                     string img;
                     // Enumerate images under the person folder, call detection
@@ -837,6 +882,9 @@ namespace LiveCameraSample
 
                     Persons.Add(p);
                 }
+
+                PersonDataUpdate();
+
                 if (invalidImageCount > 0) {
                     Log("Warning: more or less than one face is detected in {0} images, can not add to face list.", invalidImageCount);
                 }
@@ -863,6 +911,8 @@ namespace LiveCameraSample
             }
             GC.Collect();
         }
+
+
 
         public void Log(string format, params object[] args) {
             MessageArea.Text = string.Format(format, args);
@@ -940,9 +990,14 @@ namespace LiveCameraSample
                 g.Dispose();
             } catch (Exception) {
 
-                Log("Failed. Start Camera first.");
+                Log("Failed. ");
             }
             
+        }
+
+        private void NewGroupID(object sender, RoutedEventArgs e) {
+            this.GroupId = Guid.NewGuid().ToString();
+            Log("NewGroupID. {0} ", this.GroupId);
         }
     }
 }

@@ -36,7 +36,6 @@ using Microsoft.ProjectOxford.Face.Contract;
 using Microsoft.ProjectOxford.Common.Contract;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace LiveCameraSample
 {
@@ -53,20 +52,16 @@ namespace LiveCameraSample
             return string.Format("{0}: {1:N1}", bestEmotion.Item1, bestEmotion.Item2);
         }
 
-        public static string SummarizeFaceAttributes(FaceAttributes attr, string personName, PersonData personData)
+        public static string SummarizeFaceAttributes(FaceAttributes attr)
         {
             List<string> attrs = new List<string>();
-            //if (attr.Gender != null) attrs.Add(attr.Gender);
-            //if (attr.Age > 0) attrs.Add(attr.Age.ToString());
-            //if (attr.HeadPose != null)
-            //{
-            //    // Simple rule to estimate whether person is facing camera. 
-            //    bool facing = Math.Abs(attr.HeadPose.Yaw) < 25;
-            //    attrs.Add(facing ? "facing camera" : "not facing camera");
-            //}
-            attrs.Add(personName);
-            if (personName != "Unknown") {
-                attrs.Add(personData.Times.ToString());
+            if (attr.Gender != null) attrs.Add(attr.Gender);
+            if (attr.Age > 0) attrs.Add(attr.Age.ToString());
+            if (attr.HeadPose != null)
+            {
+                // Simple rule to estimate whether person is facing camera. 
+                bool facing = Math.Abs(attr.HeadPose.Yaw) < 25;
+                attrs.Add(facing ? "facing camera" : "not facing camera");
             }
             return string.Join(", ", attrs);
         }

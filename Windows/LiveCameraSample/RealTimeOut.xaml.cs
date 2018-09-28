@@ -35,15 +35,9 @@ namespace LiveCameraSample {
         private static ResizeMode _windowResizeMode;
         private static Rect _windowRect;
 
-        /// <summary>
-        /// 进入全屏    
-        /// </summary>
-        /// <param name="window"></param>
         public static void GoFullscreen(this Window window) {
-            //已经是全屏 
             if (window.IsFullscreen()) return;
-
-            //存储窗体信息       
+   
             _windowState = window.WindowState;
             _windowStyle = window.WindowStyle;
             _windowTopMost = window.Topmost;
@@ -53,27 +47,20 @@ namespace LiveCameraSample {
             _windowRect.Width = window.Width;
             _windowRect.Height = window.Height;
 
-
-            //变成无边窗体 
-            window.WindowState = WindowState.Normal;//假如已经是Maximized，就不能进入全屏，所以这里先调整状态 
+            window.WindowState = WindowState.Normal;
             window.WindowStyle = WindowStyle.None;
             window.ResizeMode = ResizeMode.NoResize;
-            window.Topmost = true;//最大化后总是在最上面 
+            window.Topmost = true;
 
-            //获取窗口句柄 
             var handle = new WindowInteropHelper(window).Handle;
-            //获取当前显示器屏幕
             Screen screen = Screen.FromHandle(handle);
 
-            //调整窗口最大化,全屏的关键代码就是下面3句 
             window.MaxWidth = screen.Bounds.Width;
             window.MaxHeight = screen.Bounds.Height;
             window.WindowState = WindowState.Maximized;
 
-            //解决切换应用程序的问题
             window.Activated += new EventHandler(window_Activated);
             window.Deactivated += new EventHandler(window_Deactivated);
-            //记住成功最大化的窗体 
             _fullWindow = window;
         }
 
@@ -86,34 +73,23 @@ namespace LiveCameraSample {
             window.Topmost = true;
         }
 
-        /// <summary>
-        /// 退出全屏
-        /// </summary>
-        /// <param name="window"></param>
         public static void ExitFullscreen(this Window window) {
-            //已经不是全屏无操作 
             if (!window.IsFullscreen()) return;
-            //恢复窗口先前信息，这样就退出了全屏 
             window.Topmost = _windowTopMost;
             window.WindowStyle = _windowStyle;
-            window.ResizeMode = ResizeMode.CanResize;//设置为可调整窗体大小 
+            window.ResizeMode = ResizeMode.CanResize;
             window.Left = _windowRect.Left;
             window.Width = _windowRect.Width;
             window.Top = _windowRect.Top;
             window.Height = _windowRect.Height;
-            window.WindowState = _windowState;//恢复窗口状态信息 
-            window.ResizeMode = _windowResizeMode;//恢复窗口可调整信息 
-                                                  //移除不需要的事件 
+            window.WindowState = _windowState;
+            window.ResizeMode = _windowResizeMode;
+                                           
             window.Activated -= window_Activated;
             window.Deactivated -= window_Deactivated;
             _fullWindow = null;
         }
 
-        /// <summary>
-        /// 窗体是否在全屏状态
-        /// </summary>
-        /// <param name="window"></param>
-        /// <returns></returns>
         public static bool IsFullscreen(this Window window) {
             if (window == null)
                 throw new ArgumentNullException("window");

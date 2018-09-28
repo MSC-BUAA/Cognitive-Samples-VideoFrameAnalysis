@@ -61,18 +61,6 @@ namespace LiveCameraSample.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("00:00:10")]
-        public global::System.TimeSpan AnalysisInterval {
-            get {
-                return ((global::System.TimeSpan)(this["AnalysisInterval"]));
-            }
-            set {
-                this["AnalysisInterval"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public int FaceAPICallCount {
             get {
@@ -137,6 +125,42 @@ namespace LiveCameraSample.Properties {
             }
             set {
                 this["VisionAPIHost"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("00:00:03")]
+        public global::System.TimeSpan AnalysisInterval {
+            get {
+                return ((global::System.TimeSpan)(this["AnalysisInterval"]));
+            }
+            set {
+                this["AnalysisInterval"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("path here")]
+        public string FacePath {
+            get {
+                return ((string)(this["FacePath"]));
+            }
+            set {
+                this["FacePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("00000000-0000-0000-0000-000000000000")]
+        public string GroupGuid {
+            get {
+                return ((string)(this["GroupGuid"]));
+            }
+            set {
+                this["GroupGuid"] = value;
             }
         }
     }

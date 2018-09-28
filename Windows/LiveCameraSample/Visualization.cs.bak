@@ -32,7 +32,6 @@
 // 
 
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -44,40 +43,16 @@ using System.Windows.Media.Imaging;
 using Microsoft.ProjectOxford.Common.Contract;
 using FaceAPI = Microsoft.ProjectOxford.Face.Contract;
 using Microsoft.ProjectOxford.Vision.Contract;
-using System.Collections.ObjectModel;
 
 namespace LiveCameraSample
 {
     public class Visualization
     {
-        public unsafe static BitmapSource ToGrayScale(BitmapSource source) {
-            const int PIXEL_SIZE = 4;
-            int width = source.PixelWidth;
-            int height = source.PixelHeight;
-            var bitmap = new WriteableBitmap(source);
-            bitmap.Lock();
-            var backBuffer = (byte*)bitmap.BackBuffer.ToPointer();
-            for (int y = 0; y < height-1; y++) {
-                var row = backBuffer + (y * bitmap.BackBufferStride);
-                for (int x = 0; x < width; x++) {
-                    var grayScale = (byte)(((row[x * PIXEL_SIZE + 1]) + (row[x * PIXEL_SIZE + 2]) + (row[x * PIXEL_SIZE + 3])) / 3);
-                    for (int i = 0; i < PIXEL_SIZE; i++)
-                        row[x * PIXEL_SIZE + i] = grayScale;
-                }
-            }
-            bitmap.AddDirtyRect(new Int32Rect(0, 0, width, height));
-            bitmap.Unlock();
-            return bitmap;
-        }
-
-
         private static SolidColorBrush s_lineBrush = new SolidColorBrush(new System.Windows.Media.Color { R = 255, G = 185, B = 0, A = 255 });
         private static Typeface s_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
 
-        private static BitmapSource DrawOverlay(BitmapSource baseImage, Action<DrawingContext, BitmapSource, double> drawAction)
+        private static BitmapSource DrawOverlay(BitmapSource baseImage, Action<DrawingContext, double> drawAction)
         {
-            BitmapSource oriImage = baseImage;
-            baseImage = ToGrayScale(baseImage);
             double annotationScale = baseImage.PixelHeight / 320;
 
             DrawingVisual visual = new DrawingVisual();
@@ -85,7 +60,7 @@ namespace LiveCameraSample
 
             drawingContext.DrawImage(baseImage, new Rect(0, 0, baseImage.Width, baseImage.Height));
 
-            drawAction(drawingContext, oriImage, annotationScale);
+            drawAction(drawingContext, annotationScale);
 
             drawingContext.Close();
 
@@ -105,7 +80,7 @@ namespace LiveCameraSample
                 return baseImage;
             }
 
-            Action<DrawingContext, BitmapSource, double> drawAction = (drawingContext, oriImage, annotationScale) =>
+            Action<DrawingContext, double> drawAction = (drawingContext, annotationScale) =>
             {
                 double y = 0;
                 foreach (var tag in tags)
@@ -113,7 +88,7 @@ namespace LiveCameraSample
                     // Create formatted text--in a particular font at a particular size
                     FormattedText ft = new FormattedText(tag.Name,
                         CultureInfo.CurrentCulture, FlowDirection.LeftToRight, s_typeface,
-                        21 * annotationScale, Brushes.Black);
+                        42 * annotationScale, Brushes.Black);
                     // Instead of calling DrawText (which can only draw the text in a solid colour), we
                     // convert to geometry and use DrawGeometry, which allows us to add an outline. 
                     var geom = ft.BuildGeometry(new System.Windows.Point(10 * annotationScale, y));
@@ -126,45 +101,28 @@ namespace LiveCameraSample
             return DrawOverlay(baseImage, drawAction);
         }
 
-        public static BitmapSource DrawFaces(BitmapSource baseImage, FaceAPI.Face[] faces, ObservableCollection<Microsoft.ProjectOxford.Face.Controls.Face> targetFaces, EmotionScores[] emotionScores, string[] celebName, List<PersonData> personData, DataTable dataTable)
+        public static BitmapSource DrawFaces(BitmapSource baseImage, FaceAPI.Face[] faces, EmotionScores[] emotionScores, string[] celebName)
         {
             if (faces == null)
             {
                 return baseImage;
             }
 
-            Action<DrawingContext, BitmapSource, double> drawAction = (drawingContext, oriImage, annotationScale) =>
+            Action<DrawingContext, double> drawAction = (drawingContext, annotationScale) =>
             {
                 for (int i = 0; i < faces.Length; i++)
                 {
-                    if (targetFaces[i].PersonName == "Unknown") {
-                        continue;
-                    }
                     var face = faces[i];
                     if (face.FaceRectangle == null) { continue; }
-
-                    PersonData pD = new PersonData();
-                    try {
-                        pD = personData.Find(x => x.ID == targetFaces[i].FaceId);
-                        pD.Times++;
-                    } catch (Exception) {
-                        personData.Find(x => x.ID == targetFaces[i].FaceId);
-                    }
-
 
                     Rect faceRect = new Rect(
                         face.FaceRectangle.Left, face.FaceRectangle.Top,
                         face.FaceRectangle.Width, face.FaceRectangle.Height);
-                    Int32Rect faceRectInt32 = new Int32Rect(
-                        face.FaceRectangle.Left, face.FaceRectangle.Top,
-                        face.FaceRectangle.Width, face.FaceRectangle.Height);
                     string text = "";
-
-                    drawingContext.DrawImage(new CroppedBitmap(oriImage, faceRectInt32), faceRect);
 
                     if (face.FaceAttributes != null)
                     {
-                        text += Aggregation.SummarizeFaceAttributes(face.FaceAttributes, targetFaces[i].PersonName, pD);
+                        text += Aggregation.SummarizeFaceAttributes(face.FaceAttributes);
                     }
 
                     if (emotionScores?[i] != null)
@@ -206,7 +164,6 @@ namespace LiveCameraSample
                         drawingContext.DrawText(ft, origin);
                     }
                 }
-                dataTable.dataGrid.ItemsSource = personData;
             };
 
             return DrawOverlay(baseImage, drawAction);

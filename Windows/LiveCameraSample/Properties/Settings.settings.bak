@@ -11,6 +11,9 @@
     <Setting Name="SettingsPanelVisibility" Type="System.Windows.Visibility" Scope="User">
       <Value Profile="(Default)">Visible</Value>
     </Setting>
+    <Setting Name="AnalysisInterval" Type="System.TimeSpan" Scope="User">
+      <Value Profile="(Default)">00:00:03</Value>
+    </Setting>
     <Setting Name="FaceAPICallCount" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
@@ -28,15 +31,6 @@
     </Setting>
     <Setting Name="VisionAPIHost" Type="System.String" Scope="User">
       <Value Profile="(Default)">https://westus.api.cognitive.microsoft.com/vision/v1.0</Value>
-    </Setting>
-    <Setting Name="AnalysisInterval" Type="System.TimeSpan" Scope="User">
-      <Value Profile="(Default)">00:00:03</Value>
-    </Setting>
-    <Setting Name="FacePath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">path here</Value>
-    </Setting>
-    <Setting Name="GroupGuid" Type="System.String" Scope="User">
-      <Value Profile="(Default)">00000000-0000-0000-0000-000000000000</Value>
     </Setting>
   </Settings>
 </SettingsFile>
