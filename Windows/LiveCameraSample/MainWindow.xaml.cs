@@ -604,6 +604,7 @@ namespace LiveCameraSample
             //SettingsPanel.Visibility = Visibility.Hidden;
             Properties.Settings.Default.Save();
             Log("Settings Saved.");
+            FolderPicker();
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
