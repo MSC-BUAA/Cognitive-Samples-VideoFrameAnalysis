@@ -21,14 +21,26 @@ namespace LiveCameraSample {
             InitializeComponent();
         }
 
-        public static int num = 4;
-        public int rows = 2;
-        public int cols = 2;
+        public static int num;
+        public int rows;
+        public int cols;
 
         public BitmapSource[] faceBitmaps = new BitmapSource[num];
         public List<string> id = new List<string>(num);
         public bool[] colorful = new bool[num];
         Image[] faceImgs = new Image[num];
+
+        public void Init(int n) {
+            num = n;
+            int l = Convert.ToInt16(Math.Ceiling(Math.Sqrt(num)));
+            rows = l;
+            cols = l;
+
+            faceBitmaps = new BitmapSource[num];
+            id = new List<string>(num);
+            colorful = new bool[num];
+            faceImgs = new Image[num];
+    }
 
         public void UpdateCanvas() {
             canvas.Width = this.grid.Width;
@@ -40,7 +52,6 @@ namespace LiveCameraSample {
             int height = MaxY / rows;
 
             for (int i = 0; i < faceImgs.Length; i++) {
-
 
                 int row = i / cols;
                 int col = i % cols;

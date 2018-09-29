@@ -791,7 +791,13 @@ namespace LiveCameraSample
                 // Enumerate top level directories, each directory contains one person's images
                 int invalidImageCount = 0;
                 personData.Clear();
+                
                 int i = 0;
+                foreach (var dir in System.IO.Directory.EnumerateDirectories(Properties.Settings.Default.FacePath)) {
+                    i++;
+                }
+                imageWall.Init(i);
+                i = 0;
                 foreach (var dir in System.IO.Directory.EnumerateDirectories(Properties.Settings.Default.FacePath)) {
                     var tasks = new List<Task>();
                     var tag = System.IO.Path.GetFileName(dir);
