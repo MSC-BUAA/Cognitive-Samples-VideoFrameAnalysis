@@ -22,8 +22,9 @@
             <ComboBox x:Name="CameraList" Width="100" Margin="5,5,0,5" Loaded="CameraList_Loaded" />
 
             <Button Content="QRCode" Padding="5,0" Margin="5,5,0,5"  Click="QRCode"/>
-            <TextBox x:Name="QRCodePath" Text="out.png" Padding="5,0" Margin="5,8,0,7" Width="98" HorizontalAlignment="Stretch" TextAlignment="Left" />
-
+            <Button Content="Open Image" Padding="5,0" Margin="5,5,0,5"  Click="OpenImage"/>
+            <TextBox x:Name="QRCodePath" Text="out.png" Padding="5,0" Margin="5,8,0,7" Width="98" HorizontalAlignment="Stretch" TextAlignment="Left" Visibility="Hidden"/>
+            
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>

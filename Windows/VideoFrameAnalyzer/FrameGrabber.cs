@@ -44,6 +44,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenCvSharp;
+using System.Windows.Media.Imaging;
 
 namespace VideoFrameAnalyzer
 {
@@ -161,6 +162,7 @@ namespace VideoFrameAnalyzer
         /// <returns> A Task. </returns>
         public async Task StartProcessingCameraAsync(int cameraIndex = 0, double overrideFPS = 0)
         {
+            fromImage = false;
             // Check to see if we're re-opening the same camera. 
             if (_reader != null && _reader.CaptureType == CaptureType.Camera && cameraIndex == _currCameraIdx)
             {
@@ -185,6 +187,36 @@ namespace VideoFrameAnalyzer
 
             _currCameraIdx = cameraIndex;
         }
+
+        BitmapImage openedImage;
+
+        public async Task StartProcessingCameraAsync(string filename, double overrideFPS = 0) {
+            // Check to see if we're re-opening the same camera. 
+            //if (_reader != null && _reader.CaptureType == CaptureType.Camera && cameraIndex == _currCameraIdx) {
+            //    return;
+            //}
+            fromImage = true;
+
+            await StopProcessingAsync().ConfigureAwait(false);
+
+            _reader = new VideoCapture(0);
+            openedImage = new BitmapImage(new Uri(filename));
+
+            _fps = overrideFPS;
+
+            if (_fps == 0) {
+                _fps = 30;
+            }
+
+            Width = _reader.FrameWidth;
+            Height = _reader.FrameHeight;
+
+            StartProcessing(TimeSpan.FromSeconds(1 / _fps), () => DateTime.Now);
+
+            _currCameraIdx = 0;
+        }
+
+        bool fromImage = false;
 
         /// <summary> Starts capturing and processing video frames. </summary>
         /// <param name="frameGrabDelay"> The frame grab delay. </param>
@@ -218,6 +250,18 @@ namespace VideoFrameAnalyzer
                     var timestamp = timestampFn();
                     Mat image = new Mat();
                     bool success = _reader.Read(image);
+
+                    if (fromImage) {
+                        BitmapEncoder encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(BitmapFrame.Create(openedImage));
+
+                        using (var fileStream = new System.IO.FileStream("TempFile.PNG", System.IO.FileMode.Create)) {
+                            encoder.Save(fileStream);
+                        }
+
+                        image = Cv2.ImRead("TempFile.PNG");
+                    }
+                    
 
                     LogMessage("Producer: frame-grab took {0} ms", (DateTime.Now - startTime).Milliseconds);
 

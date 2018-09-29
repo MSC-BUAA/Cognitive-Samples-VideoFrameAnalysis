@@ -999,6 +999,55 @@ namespace LiveCameraSample
             this.GroupId = Guid.NewGuid().ToString();
             Log("NewGroupID. {0} ", this.GroupId);
         }
+
+        private async void AnalysisOnce(string filename) {
+            //if (!CameraList.HasItems) {
+            //    MessageArea.Text = "No cameras found; cannot start processing";
+            //    return;
+            //}
+
+            // Clean leading/trailing spaces in API keys. 
+            Properties.Settings.Default.FaceAPIKey = Properties.Settings.Default.FaceAPIKey.Trim();
+            Properties.Settings.Default.VisionAPIKey = Properties.Settings.Default.VisionAPIKey.Trim();
+
+            // Create API clients. 
+            _visionClient = new VisionAPI.VisionServiceClient(Properties.Settings.Default.VisionAPIKey, Properties.Settings.Default.VisionAPIHost);
+
+            // How often to analyze. 
+            _grabber.TriggerAnalysisOnInterval(Properties.Settings.Default.AnalysisInterval);
+
+            // Reset message. 
+            MessageArea.Text = "";
+
+            // Record start time, for auto-stop
+            _startTime = DateTime.Now;
+
+            await _grabber.StartProcessingCameraAsync(filename);
+
+            System.Threading.Thread.Sleep(3000);
+
+            await _grabber.StopProcessingAsync();
+        }
+
+        BitmapImage openedImage;
+
+        private void OpenImage(object sender, RoutedEventArgs e) {
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.FileName = "Open Image";
+            dlg.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png";
+
+            Nullable<bool> result = dlg.ShowDialog();
+            if (result == true) {
+                // Open document
+                string filename = dlg.FileName;
+
+                openedImage = new BitmapImage(new Uri(filename));
+                LeftImage.Source = openedImage;
+
+
+                AnalysisOnce(filename);
+            }
+        }
     }
 }
 
