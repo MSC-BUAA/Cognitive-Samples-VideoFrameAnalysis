@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:LiveCameraSample"
         mc:Ignorable="d"
         Title="ImageWall" Height="300" Width="300">
-    <Grid>
+    <Grid Name="grid">
         <Canvas Name="canvas"/>
     </Grid>
 </Window>

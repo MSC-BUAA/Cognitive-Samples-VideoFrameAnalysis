@@ -31,8 +31,9 @@ namespace LiveCameraSample {
         Image[] faceImgs = new Image[num];
 
         public void UpdateCanvas() {
-            canvas.Width = this.Width;
-            canvas.Height = this.Height;
+            canvas.Width = this.grid.Width;
+            canvas.Height = this.grid.Height;
+            canvas.Children.Clear();
             int MaxX = (int)this.Width;
             int MaxY = (int)this.Height;
             int width = MaxX / cols;
@@ -49,7 +50,12 @@ namespace LiveCameraSample {
                 } else {
                     faceImgs[i].Source = ToGrayScale(faceBitmaps[i]);
                 }
-                
+                TransformedBitmap myTransformedSource = new TransformedBitmap();
+                myTransformedSource.BeginInit();
+                myTransformedSource.Source = (BitmapSource)faceImgs[i].Source;
+                myTransformedSource.Transform = new ScaleTransform(width / faceImgs[i].Source.Width, height / faceImgs[i].Source.Height);
+                myTransformedSource.EndInit();
+                faceImgs[i].Source = myTransformedSource;
                 faceImgs[i].Width = width;
                 faceImgs[i].Height = height;
                 Canvas.SetLeft(faceImgs[i], col * width);
