@@ -93,6 +93,7 @@ namespace LiveCameraSample
 
         RealTimeOut outWin = new RealTimeOut();
         static DataTable dataTable = new DataTable();
+        static ImageWall imageWall = new ImageWall();
 
         static List<PersonData> personData = new List<PersonData>();
 
@@ -102,6 +103,7 @@ namespace LiveCameraSample
 
             outWin.Show();
             dataTable.Show();
+            imageWall.Show();
             if (Properties.Settings.Default.GroupGuid != "00000000-0000-0000-0000-000000000000")
                 this.GroupId = Properties.Settings.Default.GroupGuid;
             else {
@@ -382,6 +384,7 @@ namespace LiveCameraSample
                 {
                     face.PersonName = Persons.Where(p => p.PersonId == res.Candidates[0].PersonId.ToString()).First().PersonName;
                     face.FaceId = res.Candidates[0].PersonId.ToString();
+                    
                 }
                 else
                 {
@@ -492,7 +495,7 @@ namespace LiveCameraSample
                     MatchAndReplaceFaceRectangles(result.Faces, clientFaces);
                 }
 
-                visImage = Visualization.DrawFaces(visImage, result.Faces, result.TargetFaces, result.EmotionScores, result.CelebrityNames, personData, dataTable);
+                visImage = Visualization.DrawFaces(visImage, result.Faces, result.TargetFaces, result.EmotionScores, result.CelebrityNames, personData, dataTable, imageWall);
                 visImage = Visualization.DrawTags(visImage, result.Tags);
             }
 
@@ -788,6 +791,7 @@ namespace LiveCameraSample
                 // Enumerate top level directories, each directory contains one person's images
                 int invalidImageCount = 0;
                 personData.Clear();
+                int i = 0;
                 foreach (var dir in System.IO.Directory.EnumerateDirectories(Properties.Settings.Default.FacePath)) {
                     var tasks = new List<Task>();
                     var tag = System.IO.Path.GetFileName(dir);
@@ -822,7 +826,13 @@ namespace LiveCameraSample
                         Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories)
                             .Where(s => s.ToLower().EndsWith(".jpg") || s.ToLower().EndsWith(".png") || s.ToLower().EndsWith(".bmp") || s.ToLower().EndsWith(".gif")));
 
+                    int j = 0;
                     while (imageList.TryTake(out img)) {
+                        if (j == 0 && i < ImageWall.num) {
+                            imageWall.faceBitmaps[i] = new BitmapImage(new Uri(img));
+                            imageWall.id.Add(p.PersonId);
+                        }
+                        j++;
                         tasks.Add(Task.Factory.StartNew(
                             async (obj) =>
                             {
@@ -882,10 +892,11 @@ namespace LiveCameraSample
                     }
 
                     Persons.Add(p);
+                    i++;
                 }
 
                 PersonDataUpdate();
-
+                imageWall.UpdateCanvas();
                 if (invalidImageCount > 0) {
                     Log("Warning: more or less than one face is detected in {0} images, can not add to face list.", invalidImageCount);
                 }
@@ -1048,6 +1059,10 @@ namespace LiveCameraSample
 
                 AnalysisOnce(filename);
             }
+        }
+
+        private void OpenImageWall(object sender, RoutedEventArgs e) {
+
         }
     }
 }

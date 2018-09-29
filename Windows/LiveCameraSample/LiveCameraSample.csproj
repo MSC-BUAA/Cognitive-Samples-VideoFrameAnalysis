@@ -108,6 +108,9 @@
       <DependentUpon>DataTable.xaml</DependentUpon>
     </Compile>
     <Compile Include="Face.cs" />
+    <Compile Include="ImageWall.xaml.cs">
+      <DependentUpon>ImageWall.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LiveCameraResult.cs" />
     <Compile Include="RealTimeOut.xaml.cs">
       <DependentUpon>RealTimeOut.xaml</DependentUpon>
@@ -116,6 +119,10 @@
     <Compile Include="UIHelper.cs" />
     <Compile Include="Visualization.cs" />
     <Page Include="DataTable.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ImageWall.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

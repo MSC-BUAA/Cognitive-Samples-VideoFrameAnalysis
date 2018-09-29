@@ -77,7 +77,7 @@ namespace LiveCameraSample
         private static BitmapSource DrawOverlay(BitmapSource baseImage, Action<DrawingContext, BitmapSource, double> drawAction)
         {
             BitmapSource oriImage = baseImage;
-            baseImage = ToGrayScale(baseImage);
+            //baseImage = ToGrayScale(baseImage);
             double annotationScale = baseImage.PixelHeight / 320;
 
             DrawingVisual visual = new DrawingVisual();
@@ -126,7 +126,7 @@ namespace LiveCameraSample
             return DrawOverlay(baseImage, drawAction);
         }
 
-        public static BitmapSource DrawFaces(BitmapSource baseImage, FaceAPI.Face[] faces, ObservableCollection<Microsoft.ProjectOxford.Face.Controls.Face> targetFaces, EmotionScores[] emotionScores, string[] celebName, List<PersonData> personData, DataTable dataTable)
+        public static BitmapSource DrawFaces(BitmapSource baseImage, FaceAPI.Face[] faces, ObservableCollection<Microsoft.ProjectOxford.Face.Controls.Face> targetFaces, EmotionScores[] emotionScores, string[] celebName, List<PersonData> personData, DataTable dataTable, ImageWall imageWall)
         {
             if (faces == null)
             {
@@ -141,6 +141,7 @@ namespace LiveCameraSample
                         continue;
                     }
                     var face = faces[i];
+                    imageWall.colorful[imageWall.id.IndexOf(targetFaces[i].FaceId)] = true;
                     if (face.FaceRectangle == null) { continue; }
 
                     PersonData pD = new PersonData();
@@ -207,6 +208,7 @@ namespace LiveCameraSample
                     }
                 }
                 dataTable.dataGrid.ItemsSource = personData;
+                imageWall.UpdateCanvas();
             };
 
             return DrawOverlay(baseImage, drawAction);
